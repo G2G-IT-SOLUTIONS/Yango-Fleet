@@ -1,0 +1,244 @@
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+  padding: 16px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dialog-container {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.dialog-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dialog-icon.warning {
+  background: rgba(255, 193, 7, 0.12);
+  color: #f59e0b;
+}
+
+.dialog-icon.danger {
+  background: rgba(220, 38, 38, 0.12);
+  color: #dc2626;
+}
+
+.dialog-icon.success {
+  background: rgba(0, 206, 209, 0.12);
+  color: #00ced1;
+}
+
+.dialog-icon.info {
+  background: rgba(220, 38, 38, 0.12);
+  color: #dc2626;
+}
+
+.dialog-icon svg {
+  width: 28px;
+  height: 28px;
+  stroke-width: 2;
+}
+
+.dialog-body {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+
+.dialog-message {
+  font-size: 14px;
+  color: #6b6b7a;
+  line-height: 1.5;
+}
+
+.dialog-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.dialog-btn-cancel,
+.dialog-btn-confirm {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  flex: 1;
+  text-align: center;
+}
+
+.dialog-btn-cancel {
+  background: #f1f2f6;
+  color: #4a4a5a;
+}
+
+.dialog-btn-cancel:hover {
+  background: #e5e6ea;
+}
+
+.dialog-btn-confirm {
+  color: #ffffff;
+}
+
+.dialog-btn-confirm.warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.dialog-btn-confirm.warning:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+}
+
+.dialog-btn-confirm.danger {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+.dialog-btn-confirm.danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
+}
+
+.dialog-btn-confirm.success {
+  background: linear-gradient(135deg, #00ced1, #00b4b8);
+}
+
+.dialog-btn-confirm.success:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 206, 209, 0.3);
+}
+
+.dialog-btn-confirm.info {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+.dialog-btn-confirm.info:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
+}
+/* ============================================
+   MOBILE RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .dialog-container {
+    padding: 24px 20px;
+    max-width: 400px;
+  }
+
+  .dialog-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .dialog-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .dialog-title {
+    font-size: 17px;
+  }
+
+  .dialog-message {
+    font-size: 13px;
+  }
+
+  .dialog-btn-cancel,
+  .dialog-btn-confirm {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   SMALL MOBILE RESPONSIVE
+   ============================================ */
+@media (max-width: 480px) {
+  .dialog-container {
+    padding: 20px 16px;
+    max-width: 100%;
+    border-radius: 16px;
+  }
+
+  .dialog-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .dialog-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .dialog-title {
+    font-size: 15px;
+  }
+
+  .dialog-message {
+    font-size: 12px;
+  }
+
+  .dialog-footer {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dialog-btn-cancel,
+  .dialog-btn-confirm {
+    padding: 10px;
+    font-size: 13px;
+    width: 100%;
+  }
+}

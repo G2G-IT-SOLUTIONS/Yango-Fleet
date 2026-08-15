@@ -1,0 +1,29 @@
+# ======================
+# Frontend (React/Vite/Next.js)
+# ======================
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.local
+
+# ======================
+# Backend (Node.js/Express)
+# ======================
+backend/node_modules/
+backend/dist/
+backend/build/
+backend/.env
+backend/.env.example 
+backend/logs/
+backend/*.log
+
+# ======================
+# General
+# ======================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+node_modules
