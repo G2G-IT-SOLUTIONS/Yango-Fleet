@@ -1,396 +1,133 @@
-Yango Fleet Management System
-A comprehensive fleet management system for transportation companies to manage vehicles, drivers, customer registrations, and Yango platform integration.
+## Overview
+
+Yango Fleet Management System is an enterprise-grade platform designed to streamline vehicle fleet operations, driver management, customer registration, and performance tracking for transportation companies.
 
-Table of Contents
-Overview
+The system integrates with the Yango Fleet API to synchronize vehicles, drivers, and car-driver bindings.
 
-Features
+### Key Business Processes
 
-Technology Stack
-
-System Architecture
-
-Database Schema
-
-Installation
-
-Configuration
-
-Running the Application
-
-API Documentation
-
-User Roles
-
-Project Structure
-
-Contributing
-
-License
-
-Overview
-Yango Fleet Management System is an enterprise-grade platform designed to streamline vehicle fleet operations, driver management, customer registration, and performance tracking for transportation companies. The system integrates with the Yango taxi platform API to synchronize vehicles, drivers, and car-driver bindings.
-
-Key Business Processes
-Customer Registration: Sales team members register customers by creating car and driver records simultaneously
-
-Vehicle Management: Track all vehicles with status, fuel type, ownership, and Yango sync status
-
-Driver Management: Manage driver profiles including license information, experience, and work rules
-
-Car-Driver Binding: Associate vehicles with drivers for operational management
-
-Performance Analytics: Track team and individual performance with comprehensive analytics
-
-Team Management: Hierarchical management with Team Leaders and Team Members
-
-Yango Integration: Seamless synchronization with the Yango platform
-
-Features
-Admin Dashboard
-Complete employee management (CRUD operations)
-
-Role-based access control (Admin, Team Leader, Team Member)
-
-Team structure management
-
-System-wide performance analytics
-
-Advanced reporting and data visualization
-
-Sales Team Features
-Customer registration (car + driver)
-
-Multi-step registration form with preview
-
-Work rule selection for drivers
-
-Real-time brand and model lookup via NHTSA API
-
-Registration history and tracking
-
-Operations Features
-Vehicle management with status tracking
-
-Driver management with license validation
-
-Car-driver binding management
-
-Yango platform synchronization
-
-Search, filter, and detailed views for all entities
-
-Performance Analytics
-Team performance ranking
-
-Individual member performance tracking
-
-Multiple view options (pivot, chart, calendar)
-
-Export reports as PDF
-
-Date range filtering (today, week, month, quarter, year)
-
-Efficiency scoring and trend analysis
-
-Reporting
-Team leader performance dashboards
-
-Member registration counts
-
-Yango sync status monitoring
-
-Downloadable performance reports
-
-Technology Stack
-Backend
-Node.js
-
-Express.js
-
-PostgreSQL
-
-JWT Authentication
-
-Axios for API calls
-
-bcrypt for password hashing
-
-dotenv for environment variables
-
-Frontend
-React
-
-Vite
-
-React Router
-
-date-fns for date manipulation
-
-html2canvas and jspdf for PDF generation
-
-recharts for data visualization
-
-Third-Party APIs
-Yango Fleet API
-
-NHTSA vPIC API (vehicle data)
-
-System Architecture
-The system follows a client-server architecture with clear separation of concerns:
-
-text
-Frontend (React) -> Backend API (Express) -> PostgreSQL Database
-                                     |
-                                     -> Yango API
-                                     -> NHTSA API
-API Design
-All API endpoints are prefixed with /api/ and follow RESTful conventions.
-
-Authentication: JWT-based authentication with Bearer token
-Authorization: Role-based access control (RBAC)
-
-Database Schema
-Core Tables
-employees
-Stores all user accounts with role-based permissions.
-
-Column	Type	Description
-id	UUID	Primary key
-first_name	VARCHAR(100)	Employee first name
-last_name	VARCHAR(100)	Employee last name
-phone	VARCHAR(30)	Unique phone number
-email	VARCHAR(255)	Unique email address
-password_hash	TEXT	Hashed password
-role	VARCHAR(30)	admin, team_leader, team_member
-team_leader_id	UUID	References employees.id
-is_active	BOOLEAN	Account status
-cars
-Stores all vehicle information.
-
-Column	Type	Description
-id	UUID	Primary key
-yango_vehicle_id	VARCHAR(100)	Yango platform vehicle ID
-brand	VARCHAR(100)	Vehicle make
-model	VARCHAR(100)	Vehicle model
-color	VARCHAR(50)	Vehicle color
-year	INTEGER	Manufacturing year
-transmission	VARCHAR(30)	mechanical, automatic, robotic, variator
-vin	VARCHAR(100)	Vehicle Identification Number
-license_plate_number	VARCHAR(50)	Unique license plate
-status	VARCHAR(30)	working, not_working, repairing, etc.
-fuel_type	VARCHAR(30)	petrol, methane, propane, electricity
-yango_synced	BOOLEAN	Yango sync status
-drivers
-Stores all driver information.
-
-Column	Type	Description
-id	UUID	Primary key
-yango_driver_id	VARCHAR(100)	Yango platform driver ID
-first_name	VARCHAR(100)	Driver first name
-last_name	VARCHAR(100)	Driver last name
-phone	VARCHAR(30)	Phone number
-email	VARCHAR(255)	Email address
-license_number	VARCHAR(100)	Driver license number
-license_country	VARCHAR(10)	Country code
-work_rule_id	VARCHAR(100)	Yango work rule ID
-yango_synced	BOOLEAN	Yango sync status
-registrations
-Links cars, drivers, and sales employees.
-
-Column	Type	Description
-id	UUID	Primary key
-car_id	UUID	References cars.id
-driver_id	UUID	References drivers.id
-sales_employee_id	UUID	References employees.id
-registration_date	TIMESTAMPTZ	Registration timestamp
-status	VARCHAR(30)	pending, completed, failed, cancelled
-yango_synced	BOOLEAN	Yango sync status
-car_driver_bindings
-Manages car-driver associations.
-
-Column	Type	Description
-id	UUID	Primary key
-car_id	UUID	References cars.id
-driver_id	UUID	References drivers.id
-bound_at	TIMESTAMPTZ	Binding timestamp
-unbound_at	TIMESTAMPTZ	Unbinding timestamp
-is_active	BOOLEAN	Active binding status
-yango_synced	BOOLEAN	Yango sync status
-Installation
-Prerequisites
-Node.js (v14 or higher)
-
-PostgreSQL (v12 or higher)
-
-npm or yarn
-
-Steps
-Clone the repository
-
-bash
-git clone https://github.com/yourusername/yango-fleet-management.git
-cd yango-fleet-management
-Install backend dependencies
-
-bash
-cd backend
-npm install
-Install frontend dependencies
-
-bash
-cd ../frontend
-npm install
-Create PostgreSQL database
-
-sql
-CREATE DATABASE yango_fleet;
-Run database migrations
-
-bash
-cd ../backend
-npm run migrate
-Configuration
-Backend Configuration
-Create a .env file in the backend directory:
-
-env
-# Database
-DATABASE_URL=postgresql://username:password@localhost:5432/yango_fleet
-
-# JWT Configuration
-JWT_SECRET=your_super_secret_jwt_key
-JWT_EXPIRY=24h
-
-# Yango API Configuration
-YANGO_API_URL=https://fleet-api.yango.tech
-YANGO_API_KEY=your_api_key
-YANGO_CLIENT_ID=your_client_id
-YANGO_PARK_ID=your_park_id
-
-# Yango Work Rules
-YANGO_WORK_RULE_ID=your_work_rule_id
-
-# Server
-PORT=5000
-Frontend Configuration
-Create a .env file in the frontend directory:
-
-env
-VITE_API_URL=http://localhost:5000/api
-Running the Application
-Development Mode
-Start the backend server
-
-bash
-cd backend
-npm run dev
-Start the frontend development server
-
-bash
-cd frontend
-npm run dev
-Access the application at http://localhost:5173
-
-Production Mode
-Build the frontend
-
-bash
-cd frontend
-npm run build
-Start the backend server
-
-bash
-cd backend
-npm start
-API Documentation
-Authentication Endpoints
-Method	Endpoint	Description
-POST	/api/auth/login	Login with email/phone and password
-POST	/api/auth/logout	Logout (client-side token removal)
-GET	/api/auth/me	Get current user profile
-POST	/api/auth/change-password	Change password
-Employee Management
-Method	Endpoint	Description	Access
-POST	/api/employees	Create employee	Admin
-GET	/api/employees	Get all employees	Admin, Team Leader
-GET	/api/employees/:id	Get employee by ID	Admin, Own profile
-PUT	/api/employees/:id	Update employee	Admin, Own profile
-DELETE	/api/employees/:id	Delete employee	Admin
-PATCH	/api/employees/:id/password	Reset password	Admin
-Car Management
-Method	Endpoint	Description
-POST	/api/cars	Create car
-GET	/api/cars	Get all cars
-GET	/api/cars/:id	Get car by ID
-PUT	/api/cars/:id	Update car
-DELETE	/api/cars/:id	Delete car
-POST	/api/cars/:id/sync-yango	Sync car to Yango
-Driver Management
-Method	Endpoint	Description
-POST	/api/drivers	Create driver
-GET	/api/drivers	Get all drivers
-GET	/api/drivers/:id	Get driver by ID
-PUT	/api/drivers/:id	Update driver
-DELETE	/api/drivers/:id	Delete driver
-POST	/api/drivers/:id/sync-yango	Sync driver to Yango
-Registration Management
-Method	Endpoint	Description
-POST	/api/registrations	Create full registration
-GET	/api/registrations	Get registrations
-GET	/api/registrations/admin/all	Get all registrations (admin)
-GET	/api/registrations/:id	Get registration by ID
-PATCH	/api/registrations/:id/status	Update registration status
-DELETE	/api/registrations/:id	Delete registration
-Binding Management
-Method	Endpoint	Description
-POST	/api/bindings	Create car-driver binding
-GET	/api/bindings	Get all bindings
-GET	/api/bindings/:id	Get binding by ID
-GET	/api/bindings/car/:car_id/active	Get active binding by car
-GET	/api/bindings/driver/:driver_id/active	Get active binding by driver
-PUT	/api/bindings/:id/unbind	Unbind car and driver
-POST	/api/bindings/:id/sync-yango	Sync binding to Yango
-Performance Analytics
-Method	Endpoint	Description
-GET	/api/performance/registrations	Get all registrations
-GET	/api/performance/registrations/date-range	Get registrations by date
-GET	/api/performance/summary	Get performance summary
-GET	/api/performance/teams	Get team performance
-GET	/api/performance/teams/date-range	Get team performance by date
-GET	/api/performance/top-team	Get top performing team
-GET	/api/performance/top-member	Get top performing member
-Options
-Method	Endpoint	Description
-GET	/api/options/all	Get all form options
-User Roles
-Admin
-Full system access
-
-Employee management (CRUD)
-
-Role assignment
-
-Team structure management
-
-View all data and analytics
-
-System configuration
-
-Team Leader
-Manage team members
-
-View team performance
-
-Add/remove team members from team
-
-Create registrations
-
-View team registrations and analytics
-
-Team Member
-Create customer registrations
-
-View own registrations
-
-Track personal performance
+- **Customer Registration:** Sales team members register customers by creating car and driver records simultaneously.
+- **Vehicle Management:** Track vehicles with status, fuel type, ownership, and Yango synchronization status.
+- **Driver Management:** Manage driver profiles including license information, experience, and work rules.
+- **Car-Driver Binding:** Associate vehicles with drivers for operational management.
+- **Performance Analytics:** Track team and individual performance.
+- **Team Management:** Hierarchical management with Team Leaders and Team Members.
+- **Yango Integration:** Synchronize vehicles, drivers, and bindings with the Yango platform.
+
+---
+
+## Features
+
+### Admin Dashboard
+
+- Complete employee management (CRUD operations)
+- Role-based access control
+- Admin, Team Leader, and Team Member roles
+- Team structure management
+- System-wide performance analytics
+- Advanced reporting and data visualization
+
+### Sales Team Features
+
+- Customer registration
+- Car and driver registration
+- Multi-step registration form with preview
+- Work rule selection for drivers
+- Real-time vehicle brand and model lookup through NHTSA API
+- Registration history and tracking
+
+### Operations Features
+
+- Vehicle management
+- Vehicle status tracking
+- Driver management
+- Driver license validation
+- Car-driver binding management
+- Yango platform synchronization
+- Search and filtering
+- Detailed entity views
+
+### Performance Analytics
+
+- Team performance ranking
+- Individual member performance tracking
+- Pivot views
+- Chart views
+- Calendar views
+- PDF report export
+- Date range filtering
+- Efficiency scoring
+- Trend analysis
+
+### Reporting
+
+- Team Leader performance dashboards
+- Member registration counts
+- Yango synchronization monitoring
+- Downloadable performance reports
+
+---
+
+## Technology Stack
+
+### Backend
+
+| Technology | Purpose |
+|---|---|
+| Node.js | Backend runtime |
+| Express.js | REST API framework |
+| PostgreSQL | Relational database |
+| JWT | Authentication |
+| Axios | API requests |
+| bcrypt | Password hashing |
+| dotenv | Environment configuration |
+
+### Frontend
+
+| Technology | Purpose |
+|---|---|
+| React | Frontend framework |
+| Vite | Development and build tool |
+| React Router | Client-side routing |
+| date-fns | Date manipulation |
+| html2canvas | HTML-to-image conversion |
+| jsPDF | PDF generation |
+| Recharts | Data visualization |
+
+### Third-Party APIs
+
+- Yango Fleet API
+- NHTSA vPIC API
+
+---
+
+## System Architecture
+
+The system follows a client-server architecture with a clear separation of concerns.
+
+```text
+                    +----------------------+
+                    |    React Frontend    |
+                    |        Vite          |
+                    +----------+-----------+
+                               |
+                               | HTTP / REST API
+                               |
+                               v
+                    +----------------------+
+                    |   Express Backend    |
+                    |      Node.js         |
+                    +-----+-----------+----+
+                          |           |
+                          |           |
+                          v           v
+                +-------------+   +-------------+
+                | PostgreSQL  |   | Yango Fleet |
+                |  Database   |   |     API     |
+                +-------------+   +------+------+
+                                        |
+                                        v
+                                +---------------+
+                                |  NHTSA vPIC   |
+                                |      API      |
+                                +--------------
