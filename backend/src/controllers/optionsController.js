@@ -1,4 +1,5 @@
 const yangoService = require("../services/yangoService");
+const pool = require("../config/db");
 
 // ==========================================
 // GET ALL OPTIONS FOR REGISTRATION FORM
@@ -98,5 +99,35 @@ const getAllOptions = async (req, res) => {
         });
     }
 };
+// ==========================================
+// GET VEHICLE TYPES
+// ==========================================
 
-module.exports = { getAllOptions };
+const getVehicleTypes = async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                id,
+                name,
+                image
+            FROM vehicle_type
+            ORDER BY name ASC
+        `);
+
+        res.status(200).json({
+            success: true,
+            data: result.rows
+        });
+    } catch (error) {
+        console.error('Error fetching vehicle types:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch vehicle types',
+            error: error.message
+        });
+    }
+};
+
+module.exports = { getAllOptions,
+                   getVehicleTypes
+                 };

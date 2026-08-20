@@ -1,10 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import './App.css';
 import Login from './pages/Login';
 import Dashboard from './components/Admin/Dashboard';
 import AdminDashboard from './components/Admin/MainAdmin/AdminDashboard';
 
 function App() {
+
+  useEffect(() => {
+  const validateToken = async () => {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      // No token, redirect to login
+      navigate('/login');
+      return;
+    }
+
+    try {
+      // Validate token with backend
+      const response = await fetch('/api/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        // Token is invalid or expired
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        navigate('/login');
+      }
+    } catch (error) {
+      // Network error - token might still be valid
+      console.error('Token validation error:', error);
+    }
+  };
+
+  validateToken();
+}, []);
+
   const [isAuthenticated, setIsAuthenticated] = useState(
     !!localStorage.getItem('authToken')
   );

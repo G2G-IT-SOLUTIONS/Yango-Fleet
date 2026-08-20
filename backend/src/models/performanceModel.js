@@ -336,6 +336,190 @@ const getRawRegistrations = async () => {
     return result.rows;
 };
 
+// ==========================================
+// GET TEAM LEADER MEMBERS
+// ==========================================
+
+const getTeamLeaderMembers = async (teamLeaderId) => {
+    const query = `
+        SELECT 
+            e.id AS member_id,
+            e.first_name AS member_first_name,
+            e.last_name AS member_last_name,
+            e.phone AS member_phone,
+            e.email AS member_email,
+            e.role AS member_role,
+            e.is_active,
+            e.created_at AS member_since,
+            COUNT(DISTINCT r.id) AS total_registrations,
+            COALESCE(
+                json_agg(
+                    json_build_object(
+                        'id', r.id,
+                        'registration_date', r.registration_date,
+                        'status', r.status,
+                        'yango_synced', r.yango_synced,
+                        'created_at', r.created_at,
+                        'car_brand', c.brand,
+                        'car_model', c.model,
+                        'car_license_plate', c.license_plate_number,
+                        'driver_first_name', d.first_name,
+                        'driver_last_name', d.last_name
+                    ) ORDER BY r.created_at DESC
+                ) FILTER (WHERE r.id IS NOT NULL),
+                '[]'::json
+            ) AS registrations
+        FROM employees e
+        LEFT JOIN registrations r ON r.sales_employee_id = e.id
+        LEFT JOIN cars c ON r.car_id = c.id
+        LEFT JOIN drivers d ON r.driver_id = d.id
+        WHERE e.team_leader_id = $1 
+            AND e.role = 'team_member' 
+            AND e.is_active = TRUE
+        GROUP BY e.id, e.first_name, e.last_name, e.phone, e.email, e.role, e.is_active, e.created_at
+        ORDER BY total_registrations DESC, e.first_name ASC
+    `;
+
+    console.log(`📊 Executing getTeamLeaderMembers for team_leader_id: ${teamLeaderId}`);
+    const result = await pool.query(query, [teamLeaderId]);
+    console.log(`📊 Found ${result.rows.length} members for team leader ${teamLeaderId}`);
+    
+    return result.rows;
+};
+
+// ==========================================
+// GET MEMBER REGISTRATIONS FOR TEAM LEADER
+// ==========================================
+
+const getTeamLeaderMemberRegistrations = async (teamLeaderId, memberId) => {
+    const query = `
+        SELECT 
+            r.id,
+            r.car_id,
+            r.driver_id,
+            r.sales_employee_id,
+            r.registration_date,
+            r.status,
+            r.yango_synced,
+            r.created_at,
+            r.updated_at,
+            -- Car details
+            c.id AS car_id,
+            c.brand AS car_brand,
+            c.model AS car_model,
+            c.color AS car_color,
+            c.year AS car_year,
+            c.license_plate_number AS car_license_plate,
+            c.vin AS car_vin,
+            c.vehicle_type_id,
+            -- Driver details
+            d.id AS driver_id,
+            d.first_name AS driver_first_name,
+            d.last_name AS driver_last_name,
+            d.phone AS driver_phone,
+            d.email AS driver_email,
+            d.license_number AS driver_license_number,
+            -- Employee (sales person) details
+            e.id AS employee_id,
+            e.first_name AS employee_first_name,
+            e.last_name AS employee_last_name,
+            e.phone AS employee_phone,
+            e.email AS employee_email
+        FROM registrations r
+        INNER JOIN cars c ON r.car_id = c.id
+        INNER JOIN drivers d ON r.driver_id = d.id
+        INNER JOIN employees e ON r.sales_employee_id = e.id
+        WHERE r.sales_employee_id = $1 
+            AND e.team_leader_id = $2
+            AND e.role = 'team_member'
+        ORDER BY r.created_at DESC
+    `;
+
+    console.log(`📊 Executing getTeamLeaderMemberRegistrations for member: ${memberId}, team_leader: ${teamLeaderId}`);
+    const result = await pool.query(query, [memberId, teamLeaderId]);
+    console.log(`📊 Found ${result.rows.length} registrations for member ${memberId}`);
+    
+    return result.rows;
+};
+
+// ==========================================
+// GET TEAM LEADER PERFORMANCE SUMMARY
+// ==========================================
+
+const getTeamLeaderPerformanceSummary = async (teamLeaderId) => {
+    const query = `
+        WITH member_stats AS (
+            SELECT 
+                e.id AS member_id,
+                COUNT(r.id) AS registration_count,
+                COUNT(DISTINCT r.car_id) AS unique_cars,
+                COUNT(DISTINCT r.driver_id) AS unique_drivers
+            FROM employees e
+            LEFT JOIN registrations r ON r.sales_employee_id = e.id
+            WHERE e.team_leader_id = $1 
+                AND e.role = 'team_member' 
+                AND e.is_active = TRUE
+            GROUP BY e.id
+        ),
+        team_stats AS (
+            SELECT 
+                COUNT(DISTINCT e.id) AS total_members,
+                COALESCE(SUM(ms.registration_count), 0) AS total_registrations,
+                COALESCE(AVG(ms.registration_count), 0) AS avg_per_member,
+                COALESCE(SUM(ms.unique_cars), 0) AS total_cars_registered,
+                COALESCE(SUM(ms.unique_drivers), 0) AS total_drivers_registered,
+                COALESCE(MAX(ms.registration_count), 0) AS max_registrations,
+                COALESCE(MIN(ms.registration_count), 0) AS min_registrations
+            FROM employees e
+            LEFT JOIN member_stats ms ON ms.member_id = e.id
+            WHERE e.team_leader_id = $1 
+                AND e.role = 'team_member' 
+                AND e.is_active = TRUE
+        )
+        SELECT * FROM team_stats
+    `;
+
+    console.log(`📊 Executing getTeamLeaderPerformanceSummary for team_leader_id: ${teamLeaderId}`);
+    const result = await pool.query(query, [teamLeaderId]);
+    console.log(`📊 Team leader summary:`, result.rows[0]);
+    
+    return result.rows[0];
+};
+
+// ==========================================
+// GET TEAM LEADER MEMBERS WITH REGISTRATION COUNT
+// ==========================================
+
+const getTeamLeaderMembersWithStats = async (teamLeaderId) => {
+    const query = `
+        SELECT 
+            e.id AS member_id,
+            e.first_name AS member_first_name,
+            e.last_name AS member_last_name,
+            e.phone AS member_phone,
+            e.email AS member_email,
+            e.created_at AS member_since,
+            COUNT(r.id) AS total_registrations,
+            COUNT(DISTINCT r.car_id) AS unique_cars,
+            COUNT(DISTINCT r.driver_id) AS unique_drivers,
+            MAX(r.created_at) AS last_registration,
+            MIN(r.created_at) AS first_registration
+        FROM employees e
+        LEFT JOIN registrations r ON r.sales_employee_id = e.id
+        WHERE e.team_leader_id = $1 
+            AND e.role = 'team_member' 
+            AND e.is_active = TRUE
+        GROUP BY e.id, e.first_name, e.last_name, e.phone, e.email, e.created_at
+        ORDER BY COUNT(r.id) DESC, e.first_name ASC
+    `;
+
+    console.log(`📊 Executing getTeamLeaderMembersWithStats for team_leader_id: ${teamLeaderId}`);
+    const result = await pool.query(query, [teamLeaderId]);
+    console.log(`📊 Found ${result.rows.length} members with stats`);
+    
+    return result.rows;
+};
+
 module.exports = {
     getPerformanceRegistrations,
     getPerformanceRegistrationsByDate,
@@ -344,5 +528,10 @@ module.exports = {
     getTeamPerformanceByDate,
     getTopPerformingTeam,
     getTopPerformingMember,
-    getRawRegistrations
+    getRawRegistrations,
+    getTeamLeaderMembers,
+    getTeamLeaderMemberRegistrations,
+    getTeamLeaderPerformanceSummary,
+    getTeamLeaderMembersWithStats
 };
+

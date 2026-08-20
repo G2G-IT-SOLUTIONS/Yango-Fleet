@@ -14,9 +14,28 @@ const AdminSidebar = ({
   onNavigate 
 }) => {
   const [expandedMenu, setExpandedMenu] = useState('team');
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const toggleMenu = (menu) => {
     setExpandedMenu(expandedMenu === menu ? null : menu);
+  };
+
+  // Handle logout click - show confirmation
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  // Confirm logout
+  const handleConfirmLogout = () => {
+    setShowLogoutConfirm(false);
+    if (onLogout) {
+      onLogout();
+    }
+  };
+
+  // Cancel logout
+  const handleCancelLogout = () => {
+    setShowLogoutConfirm(false);
   };
 
   const menuItems = [
@@ -103,10 +122,37 @@ const AdminSidebar = ({
 
   return (
     <>
+      {/* Logout Confirmation Dialog */}
+      {showLogoutConfirm && (
+        <div className="admin-logout-overlay" onClick={handleCancelLogout}>
+          <div className="admin-logout-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-logout-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </div>
+            <h3 className="admin-logout-title">Confirm Logout</h3>
+            <p className="admin-logout-message">
+              Are you sure you want to logout from Yango Fleet Admin?
+            </p>
+            <div className="admin-logout-actions">
+              <button className="admin-logout-btn-cancel" onClick={handleCancelLogout}>
+                Cancel
+              </button>
+              <button className="admin-logout-btn-confirm" onClick={handleConfirmLogout}>
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className={`admin-sidebar-overlay ${isOpen ? 'active' : ''}`} onClick={toggleSidebar} />
       <aside className={`admin-sidebar ${isOpen ? 'open' : 'closed'}`}>
         <div className="admin-sidebar-header">
-          <div className="admin-sidebar-brand">
+          <div className="admin-sidebar-brand" onClick={toggleSidebar}>
             <div className="admin-brand-icon">
               <img src={customLogo} alt="Logo" className="admin-brand-logo-image" />
             </div>
@@ -168,7 +214,8 @@ const AdminSidebar = ({
               <span className="admin-user-role-sidebar">{user?.role}</span>
             </div>
           </div>
-          <button className="admin-sidebar-logout" onClick={onLogout}>
+          {/* ✅ Updated logout button with confirmation */}
+          <button className="admin-sidebar-logout" onClick={handleLogoutClick}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
               <polyline points="16 17 21 12 16 7" />

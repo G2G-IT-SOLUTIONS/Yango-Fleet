@@ -3,8 +3,35 @@ const pool = require("../config/db");
 // ==========================================
 // CREATE DRIVER
 // ==========================================
-
+const addTwoYears = (date) => {
+    if (!date) return null;
+    try {
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return null;
+        d.setFullYear(d.getFullYear() + 2);
+        return d.toISOString().split('T')[0];
+    } catch (error) {
+        return null;
+    }
+};
 const createDriver = async (driver) => {
+    // ✅ Validate required fields
+    if (!driver.first_name) {
+        throw new Error('First name is required');
+    }
+    if (!driver.last_name) {
+        throw new Error('Last name is required');
+    }
+    if (!driver.license_number) {
+        throw new Error('License number is required');
+    }
+    if (!driver.license_issue_date) {
+        throw new Error('License issue date is required');
+    }
+    if (!driver.birth_date) {
+        throw new Error('Birth date is required');
+    }
+
     const query = `
         INSERT INTO drivers (
             first_name,
@@ -22,36 +49,51 @@ const createDriver = async (driver) => {
             id_document_address,
             tax_identification_number,
             hire_date,
-            comment
+            comment,
+            work_rule_id,
+            yango_driver_id,      
+            yango_synced 
         )
         VALUES (
             $1, $2, $3, $4, $5, $6,
             $7, $8, $9, $10, $11,
-            $12, $13, $14, $15, $16
+            $12, $13, $14, $15, $16, $17,$18 ,$19
         )
         RETURNING *
     `;
 
+    // ✅ Calculate expiry date from issue date (valid business logic)
+    const calculateExpiryDate = (issueDate) => {
+        if (!issueDate) return null;
+        const d = new Date(issueDate);
+        d.setFullYear(d.getFullYear() + 2);
+        return d.toISOString().split('T')[0];
+    };
+
+    const licenseIssueDate = driver.license_issue_date;
+    const licenseExpiryDate = calculateExpiryDate(licenseIssueDate);
+    const drivingExperienceSince = driver.driving_experience_since || licenseIssueDate;
+
     const values = [
-         // String fields
-        driver.first_name || 'Unknown',
+        driver.first_name,
         driver.middle_name || '',
-        driver.last_name || 'Unknown',
-        driver.phone || '+251900000000',
+        driver.last_name,
+        driver.phone || null,
         driver.email || null,
-        driver.address || 'No address provided',
-        
-        // Date fields in YYYY-MM-DD format
-        driver.birth_date || '1990-05-19',              // Born May 19, 1990
+        driver.address || null,
+        driver.birth_date,
         driver.license_country || 'eth',
-        driver.license_number || 'N/A',
-        driver.license_issue_date || '2015-05-19',      // License issued May 19, 2015
-        driver.license_expiry_date || '2030-05-19',     // License expires May 19, 2030
-        driver.driving_experience_since || '2010-05-19',// Driving since May 19, 2010
-        driver.id_document_address || 'No address provided',
-        driver.tax_identification_number || 'N/A',
-        driver.hire_date || '2023-05-19',               // Hired May 19, 2023
-        driver.comment || ''
+        driver.license_number,
+        licenseIssueDate,
+        licenseExpiryDate,
+        drivingExperienceSince,
+        driver.id_document_address || null,
+        driver.tax_identification_number || null,
+        driver.hire_date || new Date().toISOString().split('T')[0],
+        driver.comment || '',
+        driver.work_rule_id || null,
+        driver.yango_driver_id || null,   
+        driver.yango_synced || false  
     ];
 
     const result = await pool.query(query, values);
@@ -139,8 +181,11 @@ const updateDriver = async (id, driver) => {
             tax_identification_number = COALESCE($14, tax_identification_number),
             hire_date = COALESCE($15, hire_date),
             comment = COALESCE($16, comment),
+            work_rule_id = COALESCE($17, work_rule_id),
+            yango_driver_id = COALESCE($18, yango_driver_id),  
+            yango_synced = COALESCE($19, yango_synced),        
             updated_at = NOW()
-        WHERE id = $17
+        WHERE id = $20
         RETURNING *
     `;
 
@@ -161,6 +206,9 @@ const updateDriver = async (id, driver) => {
         driver.tax_identification_number || null,
         driver.hire_date || null,
         driver.comment || null,
+        driver.work_rule_id || null,
+        driver.yango_driver_id || null,  
+        driver.yango_synced || false,  
         id
     ];
 

@@ -496,3 +496,123 @@
     font-size: 12px !important;
   }
 }
+/* ============================================
+   LOGOUT CONFIRMATION DIALOG
+   ============================================ */
+
+.admin-logout-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: adminLogoutFadeIn 0.2s ease;
+}
+
+.admin-logout-dialog {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: adminLogoutSlideUp 0.3s ease;
+  text-align: center;
+}
+
+.admin-logout-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #fee2e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.admin-logout-icon svg {
+  width: 32px;
+  height: 32px;
+  color: #dc2626;
+  stroke-width: 2;
+}
+
+.admin-logout-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.admin-logout-message {
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.admin-logout-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.admin-logout-btn-cancel {
+  padding: 10px 24px;
+  background: #f1f5f9;
+  color: #475569;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-logout-btn-cancel:hover {
+  background: #e2e8f0;
+}
+
+.admin-logout-btn-confirm {
+  padding: 10px 24px;
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-logout-btn-confirm:hover {
+  background: #b91c1c;
+}
+
+.admin-logout-btn-confirm:active,
+.admin-logout-btn-cancel:active {
+  transform: scale(0.97);
+}
+
+@keyframes adminLogoutFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes adminLogoutSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

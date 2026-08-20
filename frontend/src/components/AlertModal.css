@@ -1,0 +1,66 @@
+/* AlertModal.css */
+.alert-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.alert-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.alert-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.alert-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+}
+
+.alert-message {
+    font-size: 16px;
+    color: #4a4a5a;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.alert-btn {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 10px 40px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.alert-btn:hover {
+    background: #b91c1c;
+}
+
+.alert-btn.success {
+    background: #16a34a;
+}
+
+.alert-btn.success:hover {
+    background: #15803d;
+}

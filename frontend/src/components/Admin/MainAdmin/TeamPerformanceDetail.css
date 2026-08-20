@@ -686,3 +686,588 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
 }
+/* ============================================
+   SECTION HEADER
+   ============================================ */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.section-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.section-badge {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b6b7a;
+  background: #f0f1f5;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+/* ============================================
+   TOOLTIP WRAPPER
+   ============================================ */
+.tooltip-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.tooltip-text {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a2e;
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+  z-index: 100;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-width: 280px;
+  white-space: normal;
+  text-align: center;
+}
+
+.tooltip-text::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1a1a2e;
+}
+
+/* ============================================
+   VIEW TOGGLE - ICON ONLY
+   ============================================ */
+/* ============================================
+   VIEW TOGGLE - FIXED
+   ============================================ */
+.view-toggle {
+  display: flex;
+  gap: 8px;
+  background: #f0f1f5;
+  padding: 6px;
+  border-radius: 12px;
+}
+
+.view-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px 20px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #6b6b7a !important;
+  cursor: pointer !important;
+  transition: all 0.25s ease !important;
+  background: transparent !important;
+  font-family: inherit !important;
+  min-width: 80px !important;
+  justify-content: center !important;
+}
+
+/* ✅ MAKE SURE SVG ICONS ARE VISIBLE */
+.view-btn svg {
+  width: 24px !important;
+  height: 24px !important;
+  flex-shrink: 0 !important;
+  display: block !important;
+  color: inherit !important;
+}
+
+.view-btn-label {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: inherit !important;
+  display: inline !important;
+}
+
+.view-btn.active {
+  background: #ffffff !important;
+  color: #dc2626 !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+.view-btn.active svg {
+  color: #dc2626 !important;
+}
+
+.view-btn:hover:not(.active) {
+  color: #1a1a2e !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+}
+/* ============================================
+   PERFORMANCE BAR WITH PERCENTAGE
+   ============================================ */
+.performance-bar-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 140px;
+}
+
+.performance-bar-fill {
+  height: 8px;
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+
+.performance-percent {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a4a5a;
+  min-width: 36px;
+}
+
+/* ============================================
+   CHART VIEW - IMPROVED
+   ============================================ */
+.chart-container {
+  padding: 20px 0;
+  overflow-x: auto;
+}
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  height: 300px;
+  padding: 0 20px;
+  min-width: 400px;
+}
+
+.bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.bar-item:hover {
+  transform: translateY(-4px);
+}
+
+.bar {
+  width: 48px;
+  border-radius: 6px 6px 0 0;
+  min-height: 10px;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  transition: all 0.5s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.bar-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-top: 6px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.bar-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+  gap: 2px;
+}
+
+.bar-initials {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a2e;
+  background: #f0f1f5;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bar-fullname {
+  font-size: 11px;
+  color: #6b6b7a;
+  text-align: center;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-percentage {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3b82f6;
+  margin-top: 2px;
+}
+
+/* ============================================
+   CALENDAR VIEW - IMPROVED
+   ============================================ */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.calendar-day {
+  text-align: center;
+  padding: 10px 4px;
+  border-radius: 10px;
+  min-height: 56px;
+  background: #f8f9fc;
+  position: relative;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.calendar-day.has-activity {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+}
+
+.calendar-day.today {
+  background: #dc2626;
+  border: 1px solid #dc2626;
+}
+
+.calendar-day.today .cal-day-number {
+  color: #ffffff;
+}
+
+.calendar-day.today .cal-day-name {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.calendar-day:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cal-day-number {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.cal-day-name {
+  font-size: 10px;
+  color: #8a8a9a;
+  text-transform: uppercase;
+}
+
+.cal-day-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #dc2626;
+  color: #ffffff;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+}
+
+/* Calendar Legend */
+.calendar-legend {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 16px;
+  padding: 12px;
+  background: #f8f9fc;
+  border-radius: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #4a4a5a;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-dot.active {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+}
+
+.legend-dot.inactive {
+  background: #f8f9fc;
+  border: 1px solid #e8e9f0;
+}
+
+.legend-dot.today {
+  background: #dc2626;
+}
+
+/* ============================================
+   TREND VIEW (NEW)
+   ============================================ */
+.trend-section {
+  animation: fadeIn 0.5s ease;
+}
+
+.trend-container {
+  padding: 16px 0;
+}
+
+.trend-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 220px;
+  padding: 0 8px;
+  overflow-x: auto;
+}
+
+.trend-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 28px;
+  height: 100%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trend-bar-item:hover {
+  transform: translateY(-2px);
+}
+
+.trend-bar {
+  width: 100%;
+  max-width: 32px;
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  position: relative;
+  transition: height 0.8s ease;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.trend-bar-value {
+  font-size: 9px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-top: 2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.trend-bar-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.trend-day {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.trend-month {
+  font-size: 8px;
+  color: #8a8a9a;
+  text-transform: uppercase;
+}
+
+.trend-summary {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 20px;
+  padding: 16px 24px;
+  background: #f8f9fc;
+  border-radius: 12px;
+}
+
+.trend-stat {
+  text-align: center;
+}
+
+.trend-stat-label {
+  display: block;
+  font-size: 11px;
+  color: #8a8a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.trend-stat-value {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .bar-chart {
+    height: 220px;
+    gap: 12px;
+    min-width: 300px;
+  }
+
+  .bar {
+    width: 32px;
+  }
+
+  .bar-value {
+    font-size: 11px;
+  }
+
+  .calendar-grid {
+    gap: 4px;
+  }
+
+  .calendar-day {
+    min-height: 44px;
+    padding: 6px 2px;
+  }
+
+  .cal-day-number {
+    font-size: 13px;
+  }
+
+  .trend-summary {
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+  }
+
+  .trend-stat-value {
+    font-size: 16px;
+  }
+
+  .view-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .performance-bar-container {
+    width: 100px;
+  }
+
+  .performance-percent {
+    font-size: 10px;
+    min-width: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bar-chart {
+    height: 160px;
+    gap: 8px;
+    min-width: 200px;
+  }
+
+  .bar {
+    width: 24px;
+  }
+
+  .bar-value {
+    font-size: 9px;
+  }
+
+  .bar-initials {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+
+  .calendar-day {
+    min-height: 36px;
+    padding: 4px 2px;
+  }
+
+  .cal-day-number {
+    font-size: 11px;
+  }
+
+  .cal-day-name {
+    font-size: 8px;
+  }
+
+  .cal-day-count {
+    width: 16px;
+    height: 16px;
+    font-size: 8px;
+    top: -2px;
+    right: -2px;
+  }
+
+  .calendar-legend {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .trend-chart {
+    height: 150px;
+  }
+
+  .trend-summary {
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  .trend-stat-value {
+    font-size: 14px;
+  }
+
+  .performance-bar-container {
+    width: 60px;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

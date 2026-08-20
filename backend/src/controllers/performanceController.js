@@ -280,7 +280,196 @@ const getRawRegistrations = async (req, res) => {
         });
     }
 };
+// ==========================================
+// GET TEAM LEADER MEMBERS
+// ==========================================
 
+const getTeamLeaderMembers = async (req, res) => {
+    try {
+        const teamLeaderId = req.employeeId; // From authenticated token
+        
+        console.log(`📊 GET /api/performance/team-leader/members - Team Leader ID: ${teamLeaderId}`);
+        
+        // Get all members under this team leader
+        const members = await performanceModel.getTeamLeaderMembers(teamLeaderId);
+        
+        // Get performance summary for this team leader
+        const summary = await performanceModel.getTeamLeaderPerformanceSummary(teamLeaderId);
+        
+        console.log(`📊 Found ${members.length} members for team leader ${teamLeaderId}`);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                teamLeaderId: teamLeaderId,
+                summary: summary || {
+                    total_members: 0,
+                    total_registrations: 0,
+                    avg_per_member: 0,
+                    total_cars_registered: 0,
+                    total_drivers_registered: 0,
+                    max_registrations: 0,
+                    min_registrations: 0
+                },
+                members: members.map(member => ({
+                    id: member.member_id,
+                    firstName: member.member_first_name,
+                    lastName: member.member_last_name,
+                    phone: member.member_phone,
+                    email: member.member_email,
+                    role: member.member_role,
+                    isActive: member.is_active,
+                    memberSince: member.member_since,
+                    totalRegistrations: parseInt(member.total_registrations) || 0,
+                    registrations: member.registrations || []
+                }))
+            }
+        });
+    } catch (error) {
+        console.error("❌ Get team leader members error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to get team leader members",
+            error: error.message
+        });
+    }
+};
+
+// ==========================================
+// GET TEAM LEADER MEMBER REGISTRATIONS
+// ==========================================
+
+const getTeamLeaderMemberRegistrations = async (req, res) => {
+    try {
+        const teamLeaderId = req.employeeId; // From authenticated token
+        const { memberId } = req.params;
+        
+        if (!memberId) {
+            return res.status(400).json({
+                success: false,
+                message: "memberId is required"
+            });
+        }
+        
+        console.log(`📊 GET /api/performance/team-leader/member/${memberId}/registrations - Team Leader ID: ${teamLeaderId}`);
+        
+        // Get registrations for this specific member under this team leader
+        const registrations = await performanceModel.getTeamLeaderMemberRegistrations(teamLeaderId, memberId);
+        
+        // Get member details
+        const member = await performanceModel.getTeamLeaderMembers(teamLeaderId);
+        const memberDetails = member.find(m => m.member_id === memberId);
+        
+        console.log(`📊 Found ${registrations.length} registrations for member ${memberId}`);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                member: memberDetails ? {
+                    id: memberDetails.member_id,
+                    firstName: memberDetails.member_first_name,
+                    lastName: memberDetails.member_last_name,
+                    phone: memberDetails.member_phone,
+                    email: memberDetails.member_email,
+                    totalRegistrations: parseInt(memberDetails.total_registrations) || 0
+                } : null,
+                registrations: registrations.map(reg => ({
+                    id: reg.id,
+                    registrationDate: reg.registration_date,
+                    status: reg.status,
+                    yangoSynced: reg.yango_synced,
+                    createdAt: reg.created_at,
+                    car: {
+                        id: reg.car_id,
+                        brand: reg.car_brand,
+                        model: reg.car_model,
+                        color: reg.car_color,
+                        year: reg.car_year,
+                        licensePlate: reg.car_license_plate,
+                        vin: reg.car_vin,
+                        vehicleTypeId: reg.vehicle_type_id
+                    },
+                    driver: {
+                        id: reg.driver_id,
+                        firstName: reg.driver_first_name,
+                        lastName: reg.driver_last_name,
+                        phone: reg.driver_phone,
+                        email: reg.driver_email,
+                        licenseNumber: reg.driver_license_number
+                    },
+                    employee: {
+                        id: reg.employee_id,
+                        firstName: reg.employee_first_name,
+                        lastName: reg.employee_last_name,
+                        phone: reg.employee_phone,
+                        email: reg.employee_email
+                    }
+                }))
+            }
+        });
+    } catch (error) {
+        console.error("❌ Get team leader member registrations error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to get member registrations",
+            error: error.message
+        });
+    }
+};
+
+// ==========================================
+// GET TEAM LEADER PERFORMANCE SUMMARY
+// ==========================================
+
+const getTeamLeaderPerformanceSummary = async (req, res) => {
+    try {
+        const teamLeaderId = req.employeeId; // From authenticated token
+        
+        console.log(`📊 GET /api/performance/team-leader/summary - Team Leader ID: ${teamLeaderId}`);
+        
+        const summary = await performanceModel.getTeamLeaderPerformanceSummary(teamLeaderId);
+        const members = await performanceModel.getTeamLeaderMembersWithStats(teamLeaderId);
+        
+        console.log(`📊 Summary retrieved for team leader ${teamLeaderId}`);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                summary: summary || {
+                    total_members: 0,
+                    total_registrations: 0,
+                    avg_per_member: 0,
+                    total_cars_registered: 0,
+                    total_drivers_registered: 0,
+                    max_registrations: 0,
+                    min_registrations: 0
+                },
+                members: members.map(m => ({
+                    id: m.member_id,
+                    firstName: m.member_first_name,
+                    lastName: m.member_last_name,
+                    phone: m.member_phone,
+                    email: m.member_email,
+                    memberSince: m.member_since,
+                    totalRegistrations: parseInt(m.total_registrations) || 0,
+                    uniqueCars: parseInt(m.unique_cars) || 0,
+                    uniqueDrivers: parseInt(m.unique_drivers) || 0,
+                    lastRegistration: m.last_registration,
+                    firstRegistration: m.first_registration
+                }))
+            }
+        });
+    } catch (error) {
+        console.error("❌ Get team leader performance summary error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to get team leader performance summary",
+            error: error.message
+        });
+    }
+};
+
+// Make sure to export the new functions
 module.exports = {
     getPerformanceRegistrations,
     getPerformanceRegistrationsByDate,
@@ -289,5 +478,9 @@ module.exports = {
     getTeamPerformanceByDate,
     getTopPerformingTeam,
     getTopPerformingMember,
-    getRawRegistrations
+    getRawRegistrations,
+    getTeamLeaderMembers,                 
+    getTeamLeaderMemberRegistrations,     
+    getTeamLeaderPerformanceSummary       
 };
+

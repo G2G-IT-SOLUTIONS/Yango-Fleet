@@ -4,7 +4,7 @@ import Sidebar from './Sidebar';
 import RegisterCustomer from './RegisterCustomer';
 import SeeRegistered from './SeeRegistered';
 import ConfirmationDialog from './ConfirmationDialog';
-
+import MembersRegistration from './MembersRegistration';
 const Dashboard = ({ user, onLogout }) => {
   const [activePage, setActivePage] = useState('register');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -33,6 +33,8 @@ const Dashboard = ({ user, onLogout }) => {
         return <RegisterCustomer user={user} />;
       case 'registered':
         return <SeeRegistered user={user} />;
+      case 'members':
+        return <MembersRegistration user={user}/>
       default:
         return <RegisterCustomer user={user} />;
     }

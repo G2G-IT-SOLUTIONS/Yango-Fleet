@@ -10,7 +10,9 @@ const {
     getTeamPerformanceByDate,
     getTopPerformingTeam,
     getTopPerformingMember,
-    getRawRegistrations
+    getRawRegistrations,
+    getTeamLeaderMembers,          // ← NEW
+    getTeamLeaderMemberRegistrations 
 } = require("../controllers/performanceController");
 
 // All performance routes require authentication
@@ -36,5 +38,10 @@ router.get("/top-team", getTopPerformingTeam);
 
 // Get top performing member
 router.get("/top-member", getTopPerformingMember);
+// Get all members under a specific team leader
+router.get("/team-leader/members", getTeamLeaderMembers);
+
+// Get registrations for a specific member under a team leader
+router.get("/team-leader/member/:memberId/registrations", getTeamLeaderMemberRegistrations);
 
 module.exports = router;
