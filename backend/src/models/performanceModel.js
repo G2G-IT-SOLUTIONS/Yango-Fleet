@@ -130,6 +130,67 @@ const getPerformanceSummary = async () => {
 // GET TEAM PERFORMANCE
 // ==========================================
 
+// const getTeamPerformance = async () => {
+//     const query = `
+//         WITH team_members AS (
+//             SELECT 
+//                 e.team_leader_id,
+//                 e.id AS member_id,
+//                 e.first_name AS member_first_name,
+//                 e.last_name AS member_last_name,
+//                 COUNT(r.id) AS registration_count
+//             FROM employees e
+//             LEFT JOIN registrations r ON r.sales_employee_id = e.id
+//             WHERE e.role = 'team_member' AND e.is_active = TRUE
+//             GROUP BY e.team_leader_id, e.id, e.first_name, e.last_name
+//         ),
+//         team_summary AS (
+//             SELECT 
+//                 tl.id AS team_leader_id,
+//                 tl.first_name AS team_leader_first_name,
+//                 tl.last_name AS team_leader_last_name,
+//                 COUNT(DISTINCT tm.member_id) AS member_count,
+//                 COALESCE(SUM(tm.registration_count), 0) AS total_registrations,
+//                 COALESCE(AVG(tm.registration_count), 0) AS avg_per_member
+//             FROM employees tl
+//             LEFT JOIN team_members tm ON tm.team_leader_id = tl.id
+//             WHERE tl.role = 'team_leader' AND tl.is_active = TRUE
+//             GROUP BY tl.id, tl.first_name, tl.last_name
+//         )
+//         SELECT 
+//             ts.*,
+//             COALESCE(
+//                 json_agg(
+//                     json_build_object(
+//                         'id', tm.member_id,
+//                         'first_name', tm.member_first_name,
+//                         'last_name', tm.member_last_name,
+//                         'registration_count', tm.registration_count
+//                     ) ORDER BY tm.registration_count DESC
+//                 ) FILTER (WHERE tm.member_id IS NOT NULL),
+//                 '[]'::json
+//             ) AS members
+//         FROM team_summary ts
+//         LEFT JOIN team_members tm ON tm.team_leader_id = ts.team_leader_id
+//         GROUP BY ts.team_leader_id, ts.team_leader_first_name, ts.team_leader_last_name, 
+//                  ts.member_count, ts.total_registrations, ts.avg_per_member
+//         ORDER BY ts.total_registrations DESC
+//     `;
+
+//     console.log('📊 Executing team performance query...');
+//     const result = await pool.query(query);
+//     console.log('📊 Teams found:', result.rows.length);
+    
+//     if (result.rows.length > 0) {
+//         console.log('📊 Sample team:', {
+//             leader: `${result.rows[0].team_leader_first_name} ${result.rows[0].team_leader_last_name}`,
+//             total_registrations: result.rows[0].total_registrations,
+//             member_count: result.rows[0].member_count
+//         });
+//     }
+    
+//     return result.rows;
+// };
 const getTeamPerformance = async () => {
     const query = `
         WITH team_members AS (
@@ -144,18 +205,28 @@ const getTeamPerformance = async () => {
             WHERE e.role = 'team_member' AND e.is_active = TRUE
             GROUP BY e.team_leader_id, e.id, e.first_name, e.last_name
         ),
+        team_leader_registrations AS (
+            SELECT 
+                e.id AS team_leader_id,
+                COUNT(r.id) AS leader_registration_count
+            FROM employees e
+            LEFT JOIN registrations r ON r.sales_employee_id = e.id
+            WHERE e.role = 'team_leader' AND e.is_active = TRUE
+            GROUP BY e.id
+        ),
         team_summary AS (
             SELECT 
                 tl.id AS team_leader_id,
                 tl.first_name AS team_leader_first_name,
                 tl.last_name AS team_leader_last_name,
                 COUNT(DISTINCT tm.member_id) AS member_count,
-                COALESCE(SUM(tm.registration_count), 0) AS total_registrations,
-                COALESCE(AVG(tm.registration_count), 0) AS avg_per_member
+                COALESCE(SUM(tm.registration_count), 0) + COALESCE(tlr.leader_registration_count, 0) AS total_registrations,
+                COALESCE(tlr.leader_registration_count, 0) AS leader_registrations
             FROM employees tl
             LEFT JOIN team_members tm ON tm.team_leader_id = tl.id
+            LEFT JOIN team_leader_registrations tlr ON tlr.team_leader_id = tl.id
             WHERE tl.role = 'team_leader' AND tl.is_active = TRUE
-            GROUP BY tl.id, tl.first_name, tl.last_name
+            GROUP BY tl.id, tl.first_name, tl.last_name, tlr.leader_registration_count
         )
         SELECT 
             ts.*,
@@ -173,7 +244,7 @@ const getTeamPerformance = async () => {
         FROM team_summary ts
         LEFT JOIN team_members tm ON tm.team_leader_id = ts.team_leader_id
         GROUP BY ts.team_leader_id, ts.team_leader_first_name, ts.team_leader_last_name, 
-                 ts.member_count, ts.total_registrations, ts.avg_per_member
+                 ts.member_count, ts.total_registrations, ts.leader_registrations
         ORDER BY ts.total_registrations DESC
     `;
 
@@ -185,6 +256,7 @@ const getTeamPerformance = async () => {
         console.log('📊 Sample team:', {
             leader: `${result.rows[0].team_leader_first_name} ${result.rows[0].team_leader_last_name}`,
             total_registrations: result.rows[0].total_registrations,
+            leader_registrations: result.rows[0].leader_registrations,
             member_count: result.rows[0].member_count
         });
     }
@@ -196,6 +268,60 @@ const getTeamPerformance = async () => {
 // GET TEAM PERFORMANCE BY DATE RANGE
 // ==========================================
 
+// const getTeamPerformanceByDate = async (startDate, endDate) => {
+//     const query = `
+//         WITH team_members AS (
+//             SELECT 
+//                 e.team_leader_id,
+//                 e.id AS member_id,
+//                 e.first_name AS member_first_name,
+//                 e.last_name AS member_last_name,
+//                 COUNT(r.id) AS registration_count
+//             FROM employees e
+//             LEFT JOIN registrations r ON r.sales_employee_id = e.id 
+//                 AND r.registration_date BETWEEN $1 AND $2
+//             WHERE e.role = 'team_member' AND e.is_active = TRUE
+//             GROUP BY e.team_leader_id, e.id, e.first_name, e.last_name
+//         ),
+//         team_summary AS (
+//             SELECT 
+//                 tl.id AS team_leader_id,
+//                 tl.first_name AS team_leader_first_name,
+//                 tl.last_name AS team_leader_last_name,
+//                 COUNT(DISTINCT tm.member_id) AS member_count,
+//                 COALESCE(SUM(tm.registration_count), 0) AS total_registrations,
+//                 COALESCE(AVG(tm.registration_count), 0) AS avg_per_member
+//             FROM employees tl
+//             LEFT JOIN team_members tm ON tm.team_leader_id = tl.id
+//             WHERE tl.role = 'team_leader' AND tl.is_active = TRUE
+//             GROUP BY tl.id, tl.first_name, tl.last_name
+//         )
+//         SELECT 
+//             ts.*,
+//             COALESCE(
+//                 json_agg(
+//                     json_build_object(
+//                         'id', tm.member_id,
+//                         'first_name', tm.member_first_name,
+//                         'last_name', tm.member_last_name,
+//                         'registration_count', tm.registration_count
+//                     ) ORDER BY tm.registration_count DESC
+//                 ) FILTER (WHERE tm.member_id IS NOT NULL),
+//                 '[]'::json
+//             ) AS members
+//         FROM team_summary ts
+//         LEFT JOIN team_members tm ON tm.team_leader_id = ts.team_leader_id
+//         GROUP BY ts.team_leader_id, ts.team_leader_first_name, ts.team_leader_last_name, 
+//                  ts.member_count, ts.total_registrations, ts.avg_per_member
+//         ORDER BY ts.total_registrations DESC
+//     `;
+
+//     console.log(`📊 Executing team performance by date: ${startDate} to ${endDate}`);
+//     const result = await pool.query(query, [startDate, endDate]);
+//     console.log('📊 Teams found:', result.rows.length);
+    
+//     return result.rows;
+// };
 const getTeamPerformanceByDate = async (startDate, endDate) => {
     const query = `
         WITH team_members AS (
@@ -211,18 +337,29 @@ const getTeamPerformanceByDate = async (startDate, endDate) => {
             WHERE e.role = 'team_member' AND e.is_active = TRUE
             GROUP BY e.team_leader_id, e.id, e.first_name, e.last_name
         ),
+        team_leader_registrations AS (
+            SELECT 
+                e.id AS team_leader_id,
+                COUNT(r.id) AS leader_registration_count
+            FROM employees e
+            LEFT JOIN registrations r ON r.sales_employee_id = e.id 
+                AND r.registration_date BETWEEN $1 AND $2
+            WHERE e.role = 'team_leader' AND e.is_active = TRUE
+            GROUP BY e.id
+        ),
         team_summary AS (
             SELECT 
                 tl.id AS team_leader_id,
                 tl.first_name AS team_leader_first_name,
                 tl.last_name AS team_leader_last_name,
                 COUNT(DISTINCT tm.member_id) AS member_count,
-                COALESCE(SUM(tm.registration_count), 0) AS total_registrations,
-                COALESCE(AVG(tm.registration_count), 0) AS avg_per_member
+                COALESCE(SUM(tm.registration_count), 0) + COALESCE(tlr.leader_registration_count, 0) AS total_registrations,
+                COALESCE(tlr.leader_registration_count, 0) AS leader_registrations
             FROM employees tl
             LEFT JOIN team_members tm ON tm.team_leader_id = tl.id
+            LEFT JOIN team_leader_registrations tlr ON tlr.team_leader_id = tl.id
             WHERE tl.role = 'team_leader' AND tl.is_active = TRUE
-            GROUP BY tl.id, tl.first_name, tl.last_name
+            GROUP BY tl.id, tl.first_name, tl.last_name, tlr.leader_registration_count
         )
         SELECT 
             ts.*,
@@ -240,7 +377,7 @@ const getTeamPerformanceByDate = async (startDate, endDate) => {
         FROM team_summary ts
         LEFT JOIN team_members tm ON tm.team_leader_id = ts.team_leader_id
         GROUP BY ts.team_leader_id, ts.team_leader_first_name, ts.team_leader_last_name, 
-                 ts.member_count, ts.total_registrations, ts.avg_per_member
+                 ts.member_count, ts.total_registrations, ts.leader_registrations
         ORDER BY ts.total_registrations DESC
     `;
 
@@ -251,25 +388,71 @@ const getTeamPerformanceByDate = async (startDate, endDate) => {
     return result.rows;
 };
 
+
 // ==========================================
 // GET TOP PERFORMING TEAM
 // ==========================================
 
+// const getTopPerformingTeam = async () => {
+//     const query = `
+//         WITH team_performance AS (
+//             SELECT 
+//                 tl.id AS team_leader_id,
+//                 tl.first_name AS team_leader_first_name,
+//                 tl.last_name AS team_leader_last_name,
+//                 COUNT(DISTINCT e.id) AS member_count,
+//                 COUNT(r.id) AS total_registrations,
+//                 COALESCE(COUNT(r.id)::FLOAT / NULLIF(COUNT(DISTINCT e.id), 0), 0) AS avg_per_member
+//             FROM employees tl
+//             LEFT JOIN employees e ON e.team_leader_id = tl.id AND e.role = 'team_member' AND e.is_active = TRUE
+//             LEFT JOIN registrations r ON r.sales_employee_id = e.id
+//             WHERE tl.role = 'team_leader' AND tl.is_active = TRUE
+//             GROUP BY tl.id, tl.first_name, tl.last_name
+//         )
+//         SELECT * FROM team_performance
+//         ORDER BY total_registrations DESC
+//         LIMIT 1
+//     `;
+
+//     console.log('📊 Executing top performing team query...');
+//     const result = await pool.query(query);
+//     console.log('📊 Top team result:', result.rows[0]);
+    
+//     return result.rows[0];
+// };
 const getTopPerformingTeam = async () => {
     const query = `
-        WITH team_performance AS (
+        WITH team_members AS (
+            SELECT 
+                e.team_leader_id,
+                COUNT(r.id) AS member_registrations
+            FROM employees e
+            LEFT JOIN registrations r ON r.sales_employee_id = e.id
+            WHERE e.role = 'team_member' AND e.is_active = TRUE
+            GROUP BY e.team_leader_id
+        ),
+        team_leader_registrations AS (
+            SELECT 
+                e.id AS team_leader_id,
+                COUNT(r.id) AS leader_registrations
+            FROM employees e
+            LEFT JOIN registrations r ON r.sales_employee_id = e.id
+            WHERE e.role = 'team_leader' AND e.is_active = TRUE
+            GROUP BY e.id
+        ),
+        team_performance AS (
             SELECT 
                 tl.id AS team_leader_id,
                 tl.first_name AS team_leader_first_name,
                 tl.last_name AS team_leader_last_name,
                 COUNT(DISTINCT e.id) AS member_count,
-                COUNT(r.id) AS total_registrations,
-                COALESCE(COUNT(r.id)::FLOAT / NULLIF(COUNT(DISTINCT e.id), 0), 0) AS avg_per_member
+                COALESCE(tm.member_registrations, 0) + COALESCE(tlr.leader_registrations, 0) AS total_registrations
             FROM employees tl
             LEFT JOIN employees e ON e.team_leader_id = tl.id AND e.role = 'team_member' AND e.is_active = TRUE
-            LEFT JOIN registrations r ON r.sales_employee_id = e.id
+            LEFT JOIN team_members tm ON tm.team_leader_id = tl.id
+            LEFT JOIN team_leader_registrations tlr ON tlr.team_leader_id = tl.id
             WHERE tl.role = 'team_leader' AND tl.is_active = TRUE
-            GROUP BY tl.id, tl.first_name, tl.last_name
+            GROUP BY tl.id, tl.first_name, tl.last_name, tm.member_registrations, tlr.leader_registrations
         )
         SELECT * FROM team_performance
         ORDER BY total_registrations DESC

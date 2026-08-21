@@ -10,11 +10,43 @@ const TeamLeaders = ({ user, onSelectLeader }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedLeader, setSelectedLeader] = useState(null);
-
+  const [memberCounts, setMemberCounts] = useState({});
   useEffect(() => {
     fetchLeaders();
+    fetchMemberCounts();
   }, []);
 
+  const fetchMemberCounts = async () => {
+    try {
+        const response = await fetch('/api/team-leader-counts', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+        });
+
+        const data = await response.json();
+
+        console.log('Team Leader Member Counts:', data);
+
+        if (response.ok && data.success) {
+            const countsMap = {};
+
+            data.data.forEach(item => {
+                countsMap[item.team_leader_id] = item.member_count;
+            });
+
+            setMemberCounts(countsMap);
+        } else {
+            console.error(
+                'Failed to fetch member counts:',
+                data.message
+            );
+        }
+
+    } catch (error) {
+        console.error('Error fetching member counts:', error);
+    }
+};
   const fetchLeaders = async () => {
     setLoading(true);
     try {
@@ -238,7 +270,7 @@ const TeamLeaders = ({ user, onSelectLeader }) => {
                   </td>
                   <td>{leader.email || '-'}</td>
                   <td>{leader.phone || '-'}</td>
-                  <td>{leader.team_members_count || 0}</td>
+                  <td>{memberCounts[leader.id] || 0}</td>
                   <td>
                     <span className={`status-badge ${leader.is_active ? 'active' : 'inactive'}`}>
                       {leader.is_active ? 'Active' : 'Inactive'}

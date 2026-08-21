@@ -95,7 +95,7 @@ const getPerformanceSummary = async (req, res) => {
 };
 
 // ==========================================
-// GET TEAM PERFORMANCE
+// GET TEAM PERFORMANCE (UPDATED - includes leader registrations)
 // ==========================================
 
 const getTeamPerformance = async (req, res) => {
@@ -106,14 +106,14 @@ const getTeamPerformance = async (req, res) => {
         
         console.log('📊 Found teams:', teams.length);
 
-        // Format the response
+        // Format the response with leader registrations included
         const formattedTeams = teams.map(team => ({
             teamLeaderId: team.team_leader_id,
             teamLeaderFirstName: team.team_leader_first_name,
             teamLeaderLastName: team.team_leader_last_name,
             memberCount: parseInt(team.member_count) || 0,
             totalRegistrations: parseInt(team.total_registrations) || 0,
-            avgPerMember: parseFloat(team.avg_per_member) || 0,
+            leaderRegistrations: parseInt(team.leader_registrations) || 0,
             members: team.members || []
         }));
 
@@ -132,7 +132,7 @@ const getTeamPerformance = async (req, res) => {
 };
 
 // ==========================================
-// GET TEAM PERFORMANCE BY DATE
+// GET TEAM PERFORMANCE BY DATE (UPDATED - includes leader registrations)
 // ==========================================
 
 const getTeamPerformanceByDate = async (req, res) => {
@@ -146,19 +146,20 @@ const getTeamPerformanceByDate = async (req, res) => {
             });
         }
         
-        console.log(`📊 GET /api/performance/teams - Date range: ${startDate} to ${endDate}`);
+        console.log(`📊 GET /api/performance/teams/date-range - Date range: ${startDate} to ${endDate}`);
         
         const teams = await performanceModel.getTeamPerformanceByDate(startDate, endDate);
         
         console.log('📊 Found teams:', teams.length);
 
+        // Format the response with leader registrations included
         const formattedTeams = teams.map(team => ({
             teamLeaderId: team.team_leader_id,
             teamLeaderFirstName: team.team_leader_first_name,
             teamLeaderLastName: team.team_leader_last_name,
             memberCount: parseInt(team.member_count) || 0,
             totalRegistrations: parseInt(team.total_registrations) || 0,
-            avgPerMember: parseFloat(team.avg_per_member) || 0,
+            leaderRegistrations: parseInt(team.leader_registrations) || 0,
             members: team.members || []
         }));
 
@@ -177,7 +178,7 @@ const getTeamPerformanceByDate = async (req, res) => {
 };
 
 // ==========================================
-// GET TOP PERFORMING TEAM
+// GET TOP PERFORMING TEAM (UPDATED - includes leader registrations)
 // ==========================================
 
 const getTopPerformingTeam = async (req, res) => {
@@ -202,7 +203,7 @@ const getTopPerformingTeam = async (req, res) => {
                 teamLeaderLastName: topTeam.team_leader_last_name,
                 memberCount: parseInt(topTeam.member_count) || 0,
                 totalRegistrations: parseInt(topTeam.total_registrations) || 0,
-                avgPerMember: parseFloat(topTeam.avg_per_member) || 0
+                leaderRegistrations: parseInt(topTeam.leader_registrations) || 0
             }
         });
     } catch (error) {
@@ -254,6 +255,7 @@ const getTopPerformingMember = async (req, res) => {
         });
     }
 };
+
 // ==========================================
 // GET RAW REGISTRATIONS (For debugging)
 // ==========================================
@@ -280,6 +282,7 @@ const getRawRegistrations = async (req, res) => {
         });
     }
 };
+
 // ==========================================
 // GET TEAM LEADER MEMBERS
 // ==========================================
@@ -469,7 +472,67 @@ const getTeamLeaderPerformanceSummary = async (req, res) => {
     }
 };
 
-// Make sure to export the new functions
+// ==========================================
+// GET TEAM LEADER REGISTRATIONS (NEW)
+// ==========================================
+
+const getTeamLeaderRegistrations = async (req, res) => {
+    try {
+        const teamLeaderId = req.employeeId; // From authenticated token
+        
+        console.log(`📊 GET /api/performance/team-leader/registrations - Team Leader ID: ${teamLeaderId}`);
+        
+        // Get registrations made by the team leader
+        const registrations = await performanceModel.getTeamLeaderRegistrations(teamLeaderId);
+        
+        console.log(`📊 Found ${registrations.length} registrations for team leader ${teamLeaderId}`);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                teamLeaderId: teamLeaderId,
+                totalRegistrations: registrations.length,
+                registrations: registrations.map(reg => ({
+                    id: reg.id,
+                    registrationDate: reg.registration_date,
+                    status: reg.status,
+                    yangoSynced: reg.yango_synced,
+                    createdAt: reg.created_at,
+                    car: {
+                        id: reg.car_id,
+                        brand: reg.car_brand,
+                        model: reg.car_model,
+                        color: reg.car_color,
+                        year: reg.car_year,
+                        licensePlate: reg.car_license_plate,
+                        vin: reg.car_vin,
+                        vehicleTypeId: reg.vehicle_type_id
+                    },
+                    driver: {
+                        id: reg.driver_id,
+                        firstName: reg.driver_first_name,
+                        lastName: reg.driver_last_name,
+                        phone: reg.driver_phone,
+                        email: reg.driver_email,
+                        licenseNumber: reg.driver_license_number
+                    }
+                }))
+            }
+        });
+    } catch (error) {
+        console.error("❌ Get team leader registrations error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to get team leader registrations",
+            error: error.message
+        });
+    }
+};
+
+// ==========================================
+// MODULE EXPORTS
+// ==========================================
+
 module.exports = {
     getPerformanceRegistrations,
     getPerformanceRegistrationsByDate,
@@ -479,8 +542,8 @@ module.exports = {
     getTopPerformingTeam,
     getTopPerformingMember,
     getRawRegistrations,
-    getTeamLeaderMembers,                 
-    getTeamLeaderMemberRegistrations,     
-    getTeamLeaderPerformanceSummary       
+    getTeamLeaderMembers,
+    getTeamLeaderMemberRegistrations,
+    getTeamLeaderPerformanceSummary,
+    getTeamLeaderRegistrations
 };
-

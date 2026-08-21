@@ -11,7 +11,7 @@ const {
     getTopPerformingTeam,
     getTopPerformingMember,
     getRawRegistrations,
-    getTeamLeaderMembers,          // ← NEW
+    getTeamLeaderMembers,          
     getTeamLeaderMemberRegistrations 
 } = require("../controllers/performanceController");
 

@@ -12,6 +12,7 @@ const registrationRoutes = require("./routes/registrationRoutes");
 const performanceRoutes = require("./routes/performanceRoutes"); 
 const workRulesRoutes = require("./routes/workRulesRoutes");
 const optionsRoutes = require("./routes/optionsRoutes");
+const teamLeaderCountRoutes = require("./routes/teamLeaderCountRoutes")
 const app = express();
 
 app.use(cors());
@@ -34,6 +35,7 @@ app.use("/api/registrations", registrationRoutes);
 app.use("/api/performance", performanceRoutes);
 app.use("/api/work-rules", workRulesRoutes); 
 app.use("/api/options", optionsRoutes);
+app.use("/api/team-leader-counts", teamLeaderCountRoutes);
 
 const PORT = process.env.PORT || 5000;
 

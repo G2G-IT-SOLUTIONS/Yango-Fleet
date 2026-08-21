@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import './Performance.css';
 import { format, parseISO, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from 'date-fns';
@@ -115,7 +116,7 @@ const Performance = ({ user }) => {
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [showTeamDetail, setShowTeamDetail] = useState(false);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'table'
+  const [viewMode, setViewMode] = useState('table'); // 'cards' or 'table'
 
   useEffect(() => {
     fetchData();
@@ -217,15 +218,17 @@ const Performance = ({ user }) => {
     return employees.filter(emp => emp.role === 'team_leader' && emp.is_active !== false);
   }, [employees]);
 
-  // Calculate team performance
+  // Calculate team performance - UPDATED: includes team leader registrations
   const teamPerformance = useMemo(() => {
     return teamLeaders.map(leader => {
+      // Get team members (excluding the leader)
       const members = employees.filter(emp => 
         emp.team_leader_id === leader.id && 
         emp.role === 'team_member' && 
         emp.is_active !== false
       );
       
+      // Calculate registrations for each member
       const memberPerformance = members.map(member => {
         const count = filteredRegistrations.filter(reg => 
           reg.sales_employee_id === member.id
@@ -233,28 +236,32 @@ const Performance = ({ user }) => {
         return { ...member, registrationCount: count };
       });
       
+      // Calculate registrations for the team leader
+      const leaderRegistrationCount = filteredRegistrations.filter(reg => 
+        reg.sales_employee_id === leader.id
+      ).length;
+      
       const sortedMembers = [...memberPerformance].sort((a, b) => 
         b.registrationCount - a.registrationCount
       );
       
-      const totalRegistrations = memberPerformance.reduce((sum, m) => sum + m.registrationCount, 0);
-      const avgPerMember = members.length > 0 ? totalRegistrations / members.length : 0;
+      // Total registrations = leader's registrations + members' registrations
+      const totalRegistrations = memberPerformance.reduce((sum, m) => sum + m.registrationCount, 0) + leaderRegistrationCount;
       
       return {
         ...leader,
         members,
         memberPerformance: sortedMembers,
         totalRegistrations,
-        avgPerMember,
+        leaderRegistrationCount,
         memberCount: members.length,
         teamId: leader.id,
-        efficiencyScore: members.length > 0 ? Math.min((totalRegistrations / (members.length * 10)) * 100, 100) : 0,
         activeMembers: memberPerformance.filter(m => m.registrationCount > 0).length
       };
     });
   }, [teamLeaders, employees, filteredRegistrations]);
 
-  // Sort teams by performance
+  // Sort teams by total registrations (highest first)
   const sortedTeams = useMemo(() => {
     return [...teamPerformance].sort((a, b) => 
       b.totalRegistrations - a.totalRegistrations
@@ -389,16 +396,6 @@ const Performance = ({ user }) => {
             <span className="summary-period">{topTeam ? `${topTeam.totalRegistrations} registrations` : ''}</span>
           </div>
         </div>
-        <div className="summary-card">
-          <div className="summary-icon"><Icons.TrendingUp /></div>
-          <div className="summary-content">
-            <span className="summary-label">Avg Per Team</span>
-            <span className="summary-value">
-              {teamLeaders.length > 0 ? (totalRegistrations / teamLeaders.length).toFixed(1) : '0'}
-            </span>
-            <span className="summary-period">registrations</span>
-          </div>
-        </div>
       </div>
 
       {/* Filters and View Toggle */}
@@ -436,45 +433,6 @@ const Performance = ({ user }) => {
         </div>
       </div>
 
-      {/* Top Performer Banner */}
-      {topTeam && topTeam.totalRegistrations > 0 && (
-        <div className="top-performer-section">
-          <div className="top-performer-banner">
-            <div className="banner-icon"><Icons.Trophy /></div>
-            <div className="banner-content">
-              <h3>🏆 Leading Team</h3>
-              <p className="banner-team">{topTeam.first_name} {topTeam.last_name}</p>
-              <div className="banner-stats">
-                <span>📊 {topTeam.totalRegistrations} registrations</span>
-                <span>👥 {topTeam.memberCount} members</span>
-                <span>📈 {topTeam.avgPerMember.toFixed(1)} avg per member</span>
-                <span>⚡ {Math.round(topTeam.efficiencyScore)}% efficiency</span>
-              </div>
-            </div>
-            <div className="banner-efficiency">
-              <div className="efficiency-ring">
-                <svg viewBox="0 0 60 60">
-                  <circle cx="30" cy="30" r="25" fill="none" stroke="#e8e9f0" strokeWidth="4"/>
-                  <circle 
-                    cx="30" 
-                    cy="30" 
-                    r="25" 
-                    fill="none" 
-                    stroke="#10b981" 
-                    strokeWidth="4"
-                    strokeDasharray="157.08"
-                    strokeDashoffset={157.08 - (topTeam.efficiencyScore / 100) * 157.08}
-                    transform="rotate(-90 30 30)"
-                  />
-                </svg>
-                <span className="efficiency-value">{Math.round(topTeam.efficiencyScore)}%</span>
-              </div>
-              <span className="efficiency-label">Efficiency</span>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Team Performance */}
       <div className="team-performance-section">
         <h2 className="section-title">Team Performance Overview</h2>
@@ -505,15 +463,15 @@ const Performance = ({ user }) => {
                   <div className="team-stats">
                     <div className="stat-item">
                       <span className="stat-value">{team.totalRegistrations}</span>
-                      <span className="stat-label">Registrations</span>
+                      <span className="stat-label">Total Registrations</span>
                     </div>
                     <div className="stat-item">
                       <span className="stat-value">{team.memberCount}</span>
                       <span className="stat-label">Members</span>
                     </div>
                     <div className="stat-item">
-                      <span className="stat-value">{team.avgPerMember.toFixed(1)}</span>
-                      <span className="stat-label">Avg/Member</span>
+                      <span className="stat-value">{team.leaderRegistrationCount}</span>
+                      <span className="stat-label">Leader Regs</span>
                     </div>
                   </div>
                   <div className="team-progress-container">
@@ -551,10 +509,8 @@ const Performance = ({ user }) => {
                   <th>Rank</th>
                   <th>Team Leader</th>
                   <th>Members</th>
-                  <th>Active</th>
-                  <th>Registrations</th>
-                  <th>Avg/Member</th>
-                  <th>Efficiency</th>
+                  <th>Leader Regs</th>
+                  <th>Total Regs</th>
                 </tr>
               </thead>
               <tbody>
@@ -578,23 +534,8 @@ const Performance = ({ user }) => {
                       </div>
                     </td>
                     <td>{team.memberCount}</td>
-                    <td>
-                      <span className="active-count">{team.activeMembers}/{team.memberCount}</span>
-                    </td>
+                    <td className="reg-count">{team.leaderRegistrationCount}</td>
                     <td className="reg-count">{team.totalRegistrations}</td>
-                    <td>{team.avgPerMember.toFixed(1)}</td>
-                    <td>
-                      <div className="efficiency-bar">
-                        <div 
-                          className="efficiency-bar-fill"
-                          style={{ 
-                            width: `${Math.min(team.efficiencyScore, 100)}%`,
-                            background: team.efficiencyScore > 70 ? '#10b981' : team.efficiencyScore > 40 ? '#f59e0b' : '#ef4444'
-                          }}
-                        />
-                      </div>
-                      <span className="efficiency-text">{Math.round(team.efficiencyScore)}%</span>
-                    </td>
                   </tr>
                 ))}
               </tbody>
