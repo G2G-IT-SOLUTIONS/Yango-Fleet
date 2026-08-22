@@ -186,7 +186,10 @@ const createFullRegistration = async (req, res) => {
 
         } catch (error) {
             console.error("❌ Yango sync failed:", error.message);
-            yangoError = error.message;
+            yangoError =
+                    error.response?.data?.message ||
+                    error.response?.data?.error?.message ||
+                    error.message;
             
             // If car was created but driver failed, try to delete the car
             if (yangoCarId && !yangoDriverId) {
@@ -204,7 +207,7 @@ const createFullRegistration = async (req, res) => {
             
             return res.status(400).json({
                 success: false,
-                message: "Registration failed: Could not sync with Yango. No local records were created.",
+                message: yangoError,
                 error: yangoError,
                 yango_synced: false,
                 step: "yango_sync",
