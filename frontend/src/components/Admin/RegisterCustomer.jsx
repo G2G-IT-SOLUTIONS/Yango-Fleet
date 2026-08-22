@@ -151,7 +151,7 @@ const VehicleTypeSelection = ({ onSelect, selectedType, onNext, onSkip }) => {
     const getImageUrl = (imageName) => {
         if (!imageName) return null;
         if (imageName.startsWith('http')) return imageName;
-        return `http://localhost:5000/assets/vehicle-types/${imageName}`;
+        return `/api/assets/vehicle-types/${imageName}`;
     };
 
     const getVehicleIcon = (name) => {

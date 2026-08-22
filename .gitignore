@@ -27,3 +27,5 @@ Thumbs.db
 .idea/
 *.log
 node_modules
+
+yango_fleet.sql

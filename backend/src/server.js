@@ -17,7 +17,10 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
+app.use(
+  '/api/assets',
+  express.static(path.join(__dirname, 'assets'))
+);
 
 app.get("/", (req, res) => {
   res.json({

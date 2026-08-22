@@ -1,10 +1,32 @@
-:80 {
+{
+    # Disable admin API for security
+    admin off
+}
 
-    handle /api/* {
-        reverse_proxy backend:5000
+:8080 {
+    # Log requests for debugging
+    log {
+        output stdout
+        format json
     }
-
+    
+    # Handle API routes
+    handle /api/* {
+        reverse_proxy backend:5000 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    # Handle everything else
     handle {
-        reverse_proxy frontend:80
+        reverse_proxy frontend:80 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
     }
 }
